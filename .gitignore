@@ -1,3 +1,4 @@
 /composer.lock
 /vendor
 .github/*
+.DS_STORE
