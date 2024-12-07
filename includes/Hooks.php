@@ -102,27 +102,31 @@ class Hooks implements
 	 * @inheritDoc
 	 */
 	public function onPageSaveComplete( $wikiPage, $user, $summary, $flags, $revisionRecord, $editResult ) {
+		// If null edit, return
 		if ( $editResult->isNullEdit() ) {
 			return;
 		}
 
 		$isNew = (bool)( $flags & EDIT_NEW );
 
+		// If edit article notifs disabled, return
 		if ( !$this->config->get( 'DiscordNotificationEditedArticle' ) && !$isNew ) {
 			return;
 		}
 
+		// If add article notifs disabled, return
 		if ( !$this->config->get( 'DiscordNotificationAddedArticle' ) && $isNew ) {
 			return;
 		}
 
-		// Do not announce newly added file uploads as articles...
+		// If file upload, return
 		if ( $wikiPage->getTitle()->getNsText() && $wikiPage->getTitle()->getNsText() == $this->discordNotifier->getMessage( 'discordnotifications-file-namespace' ) ) {
 			return;
 		}
 
 		$summary = strip_tags( $summary );
 
+		
 		$enableExperimentalCVTFeatures = $this->config->get( 'DiscordEnableExperimentalCVTFeatures' ) &&
 				$this->config->get( 'DiscordExperimentalWebhook' );
 
