@@ -36,12 +36,6 @@
 		}
 	},
 	"Hooks": {
-		"PageDeleteComplete": {
-			"handler": "main"
-		},
-		"PageMoveComplete": {
-			"handler": "main"
-		},
 		"LocalUserCreated": {
 			"handler": "main"
 		},
@@ -51,16 +45,10 @@
 		"UploadComplete": {
 			"handler": "main"
 		},
-		"ArticleProtectComplete": {
-			"handler": "main"
-		},
 		"UserGroupsChanged": {
 			"handler": "main"
 		},
 		"APIFlowAfterExecute": {
-			"handler": "main"
-		},
-		"AfterImportPage": {
 			"handler": "main"
 		},
 		"PageSaveComplete": {

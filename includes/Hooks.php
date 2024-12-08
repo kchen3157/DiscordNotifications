@@ -13,13 +13,13 @@ use ManualLogEntry;
 use MediaWiki\Auth\Hook\LocalUserCreatedHook;
 use MediaWiki\DAO\WikiAwareEntity;
 use MediaWiki\Diff\TextDiffer\ManifoldTextDiffer;
-use MediaWiki\Hook\AfterImportPageHook;
+// use MediaWiki\Hook\AfterImportPageHook;
 use MediaWiki\Hook\BlockIpCompleteHook;
-use MediaWiki\Hook\PageMoveCompleteHook;
+// use MediaWiki\Hook\PageMoveCompleteHook;
 use MediaWiki\Hook\UploadCompleteHook;
 use MediaWiki\MainConfigNames;
-use MediaWiki\Page\Hook\ArticleProtectCompleteHook;
-use MediaWiki\Page\Hook\PageDeleteCompleteHook;
+// use MediaWiki\Page\Hook\ArticleProtectCompleteHook;
+// use MediaWiki\Page\Hook\PageDeleteCompleteHook;
 use MediaWiki\Page\ProperPageIdentity;
 use MediaWiki\Page\WikiPageFactory;
 use MediaWiki\Permissions\Authority;
@@ -38,12 +38,12 @@ use TitleFactory;
 use Wikimedia\IPUtils;
 
 class Hooks implements
-	AfterImportPageHook,
-	ArticleProtectCompleteHook,
+	// AfterImportPageHook,
+	// ArticleProtectCompleteHook,
 	BlockIpCompleteHook,
 	LocalUserCreatedHook,
-	PageDeleteCompleteHook,
-	PageMoveCompleteHook,
+	// PageDeleteCompleteHook,
+	// PageMoveCompleteHook,
 	PageSaveCompleteHook,
 	UploadCompleteHook,
 	UserGroupsChangedHook
@@ -174,80 +174,6 @@ class Hooks implements
 
 			$this->discordNotifier->notify( $message, $user, 'article_saved', [], null, $wikiPage->getTitle() );
 		}
-	}
-
-	/**
-	 * @inheritDoc
-	 */
-	public function onPageDeleteComplete( ProperPageIdentity $page, Authority $deleter, string $reason, int $pageID, RevisionRecord $deletedRev, ManualLogEntry $logEntry, int $archivedRevisionCount ) {
-		if ( !$this->config->get( 'DiscordNotificationRemovedArticle' ) ) {
-			return;
-		}
-
-		if ( !$this->config->get( 'DiscordNotificationShowSuppressed' ) && $logEntry->getType() != 'delete' ) {
-			return;
-		}
-
-		$wikiPage = $this->wikiPageFactory->newFromTitle( $page );
-
-		$message = $this->discordNotifier->getMessageWithPlaintextParams( 'discordnotifications-article-deleted',
-			$this->discordNotifier->getDiscordUserText( $deleter->getUser() ),
-			$this->discordNotifier->getDiscordArticleText( $wikiPage ),
-			$reason
-		);
-
-		$this->discordNotifier->notify( $message, $deleter->getUser(), 'article_deleted', [], null, $wikiPage->getTitle() );
-	}
-
-	/**
-	 * @inheritDoc
-	 */
-	public function onPageMoveComplete( $old, $new, $user, $pageid, $redirid, $reason, $revision ) {
-		if ( !$this->config->get( 'DiscordNotificationMovedArticle' ) ) {
-			return;
-		}
-
-		$message = $this->discordNotifier->getMessage( 'discordnotifications-article-moved',
-			$this->discordNotifier->getDiscordUserText( $user ),
-			$this->discordNotifier->getDiscordTitleText( $this->titleFactory->newFromLinkTarget( $old ) ),
-			$this->discordNotifier->getDiscordTitleText( $this->titleFactory->newFromLinkTarget( $new ) ),
-			$reason
-		);
-
-		$this->discordNotifier->notify( $message, $user, 'article_moved' );
-	}
-
-	/**
-	 * @inheritDoc
-	 */
-	public function onArticleProtectComplete( $wikiPage, $user, $protect, $reason ) {
-		if ( !$this->config->get( 'DiscordNotificationProtectedArticle' ) ) {
-			return;
-		}
-
-		$message = $this->discordNotifier->getMessage( 'discordnotifications-article-protected',
-			$this->discordNotifier->getDiscordUserText( $user ),
-			$protect ? $this->discordNotifier->getMessage( 'discordnotifications-article-protected-change' ) : $this->discordNotifier->getMessage( 'discordnotifications-article-protected-remove' ),
-			$this->discordNotifier->getDiscordArticleText( $wikiPage ),
-			$reason
-		);
-
-		$this->discordNotifier->notify( $message, $user, 'article_protected' );
-	}
-
-	/**
-	 * @inheritDoc
-	 */
-	public function onAfterImportPage( $title, $foreignTitle, $revCount, $sRevCount, $pageInfo ) {
-		if ( !$this->config->get( 'DiscordNotificationAfterImportPage' ) ) {
-			return;
-		}
-
-		$message = $this->discordNotifier->getMessage( 'discordnotifications-import-complete',
-			$this->discordNotifier->getDiscordTitleText( $title )
-		);
-
-		$this->discordNotifier->notify( $message, null, 'import_complete' );
 	}
 
 	/**
