@@ -126,7 +126,12 @@ class Hooks implements
 
 		$summary = strip_tags( $summary );
 
+		// If not a Proposition article, return
+		if ($wikiPage->getTitle()->getNsText() != 'Proposition') {
+			return;
+		}
 
+		// Unused CVT features
 		$enableExperimentalCVTFeatures = $this->config->get( 'DiscordEnableExperimentalCVTFeatures' ) &&
 				$this->config->get( 'DiscordExperimentalWebhook' );
 
