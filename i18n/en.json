@@ -55,5 +55,14 @@
 	"discordnotifications-flow-moderate-undelete": "undeleted",
 	"discordnotifications-flow-new-topic": "💬 $1 has created topic $2 on $3",
 	"discordnotifications-flow-reply": "💬 $1 has replied in $2",
-	"discordnotifications-import-complete": "⤵️ Article $1 has been imported."
+	"discordnotifications-import-complete": "⤵️ Article $1 has been imported.",
+
+
+
+
+
+	"discordnotifications-proposition-created": "📄 $1 has started a draft of Proposition $2",
+	"discordnotifications-proposition-published": "$1 has published Proposition $2 for voting",
+	"discordnotifications-proposition-tally": "$1 has tallied Proposition $2",
+	"discordnotifications-proposition-status-changed": "$1 has changed the status of Proposition $2"
 }

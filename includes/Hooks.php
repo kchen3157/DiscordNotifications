@@ -141,10 +141,10 @@ class Hooks implements
 
 		if ( $isNew ) {
 
-			$message = $this->discordNotifier->getMessage( 'discordnotifications-article-created',
+			$message = $this->discordNotifier->getMessage( 'discordnotifications-proposition-created',
 				$this->discordNotifier->getDiscordUserText( $user ),
-				$this->discordNotifier->getDiscordArticleText( $wikiPage ),
-				$summary == '' ? '' : $this->discordNotifier->getMessageWithPlaintextParams( 'discordnotifications-summary', $summary )
+				$this->discordNotifier->getDiscordArticleText( $wikiPage )
+				// $summary == '' ? '' : $this->discordNotifier->getMessageWithPlaintextParams( 'discordnotifications-summary', $summary )
 			);
 
 			if ( $this->config->get( 'DiscordIncludeDiffSize' ) ) {
