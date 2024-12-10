@@ -36,18 +36,6 @@
 		}
 	},
 	"Hooks": {
-		"LocalUserCreated": {
-			"handler": "main"
-		},
-		"BlockIpComplete": {
-			"handler": "main"
-		},
-		"UploadComplete": {
-			"handler": "main"
-		},
-		"UserGroupsChanged": {
-			"handler": "main"
-		},
 		"APIFlowAfterExecute": {
 			"handler": "main"
 		},

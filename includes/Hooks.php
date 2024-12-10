@@ -10,13 +10,13 @@ use ConfigFactory;
 use Exception;
 use ExtensionRegistry;
 use ManualLogEntry;
-use MediaWiki\Auth\Hook\LocalUserCreatedHook;
+// use MediaWiki\Auth\Hook\LocalUserCreatedHook;
 use MediaWiki\DAO\WikiAwareEntity;
 use MediaWiki\Diff\TextDiffer\ManifoldTextDiffer;
 // use MediaWiki\Hook\AfterImportPageHook;
-use MediaWiki\Hook\BlockIpCompleteHook;
+// use MediaWiki\Hook\BlockIpCompleteHook;
 // use MediaWiki\Hook\PageMoveCompleteHook;
-use MediaWiki\Hook\UploadCompleteHook;
+// use MediaWiki\Hook\UploadCompleteHook;
 use MediaWiki\MainConfigNames;
 // use MediaWiki\Page\Hook\ArticleProtectCompleteHook;
 // use MediaWiki\Page\Hook\PageDeleteCompleteHook;
@@ -27,7 +27,7 @@ use MediaWiki\Revision\RevisionLookup;
 use MediaWiki\Revision\RevisionRecord;
 use MediaWiki\Revision\SlotRecord;
 use MediaWiki\Storage\Hook\PageSaveCompleteHook;
-use MediaWiki\User\Hook\UserGroupsChangedHook;
+// use MediaWiki\User\Hook\UserGroupsChangedHook;
 use MediaWiki\User\UserFactory;
 use MediaWiki\User\UserGroupManager;
 use MediaWiki\User\UserIdentityValue;
@@ -40,13 +40,13 @@ use Wikimedia\IPUtils;
 class Hooks implements
 	// AfterImportPageHook,
 	// ArticleProtectCompleteHook,
-	BlockIpCompleteHook,
-	LocalUserCreatedHook,
+	// BlockIpCompleteHook,
+	// LocalUserCreatedHook,
 	// PageDeleteCompleteHook,
 	// PageMoveCompleteHook,
-	PageSaveCompleteHook,
-	UploadCompleteHook,
-	UserGroupsChangedHook
+	PageSaveCompleteHook
+	// UploadCompleteHook,
+	// UserGroupsChangedHook
 {
 
 	/** @var Config */
@@ -174,188 +174,6 @@ class Hooks implements
 
 			$this->discordNotifier->notify( $message, $user, 'article_saved', [], null, $wikiPage->getTitle() );
 		}
-	}
-
-	/**
-	 * @inheritDoc
-	 */
-	public function onLocalUserCreated( $user, $autocreated ) {
-		if ( !$this->config->get( 'DiscordNotificationNewUser' ) ) {
-			return;
-		}
-
-		if ( !$this->config->get( 'DiscordNotificationIncludeAutocreatedUsers' ) && $autocreated ) {
-			return;
-		}
-
-		$email = '';
-		$realname = '';
-		$ipaddress = '';
-
-		try {
-			$email = $user->getEmail();
-		} catch ( Exception $e ) {
-		}
-
-		try {
-			$realname = $user->getRealName();
-		} catch ( Exception $e ) {
-		}
-
-		try {
-			$ipaddress = $user->getRequest()->getIP();
-		} catch ( Exception $e ) {
-		}
-
-		$messageExtra = '';
-		if ( $this->config->get( 'DiscordShowNewUserEmail' ) || $this->config->get( 'DiscordShowNewUserFullName' ) || $this->config->get( 'DiscordShowNewUserIP' ) ) {
-			$messageExtra = '(';
-
-			if ( $this->config->get( 'DiscordShowNewUserEmail' ) ) {
-				$messageExtra .= $email . ', ';
-			}
-
-			if ( $this->config->get( 'DiscordShowNewUserFullName' ) ) {
-				$messageExtra .= $realname . ', ';
-			}
-
-			if ( $this->config->get( 'DiscordShowNewUserIP' ) ) {
-				$messageExtra .= $ipaddress . ', ';
-			}
-
-			// Remove trailing comma
-			$messageExtra = substr( $messageExtra, 0, -2 );
-			$messageExtra .= ')';
-		}
-
-		$message = $this->discordNotifier->getMessage( 'discordnotifications-new-user',
-			$this->discordNotifier->getDiscordUserText( $user ),
-			$messageExtra
-		);
-
-		$webhook = $this->config->get( 'DiscordEnableExperimentalCVTFeatures' ) &&
-			$this->config->get( 'DiscordExperimentalCVTSendAllNewUsers' ) ?
-			$this->config->get( 'DiscordExperimentalWebhook' ) :
-			( $this->config->get( 'DiscordExperimentalNewUsersWebhook' ) ?: null );
-
-		if ( !$autocreated ) {
-			if ( $webhook && $this->config->get( 'DiscordExperimentalFeedLanguageCode' ) ) {
-				$messageInLanguage = $this->discordNotifier->getMessageInLanguage( 'discordnotifications-new-user', $this->config->get( 'DiscordExperimentalFeedLanguageCode' ),
-					$this->discordNotifier->getDiscordUserText( $user, $this->config->get( 'DiscordExperimentalFeedLanguageCode' ), true ),
-					$messageExtra
-				);
-
-				if ( $this->config->get( 'DiscordExperimentalCVTUsernameFilter' ) && $this->discordNotifier->isOffensiveUsername( $user->getName() ) ) {
-					$messageInLanguage = $this->discordNotifier->getMessageInLanguage( 'discordnotifications-new-user-filtered', $this->config->get( 'DiscordExperimentalFeedLanguageCode' ),
-						$this->discordNotifier->getDiscordUserText( $user, $this->config->get( 'DiscordExperimentalFeedLanguageCode' ), true ),
-						$messageExtra
-					);
-				}
-			}
-
-			$this->discordNotifier->notify( $messageInLanguage ?? $message, $user, 'new_user_account', [], $webhook );
-		}
-
-		if ( $webhook || $autocreated ) {
-			$this->discordNotifier->notify( $message, $user, 'new_user_account' );
-		}
-	}
-
-	/**
-	 * @inheritDoc
-	 */
-	public function onUploadComplete( $uploadBase ) {
-		if ( !$this->config->get( 'DiscordNotificationFileUpload' ) ) {
-			return;
-		}
-
-		$localFile = $uploadBase->getLocalFile();
-
-		$lang = RequestContext::getMain()->getLanguage();
-		$user = RequestContext::getMain()->getUser();
-
-		$message = $this->discordNotifier->getMessage( 'discordnotifications-file-uploaded',
-			$this->discordNotifier->getDiscordUserText( $user ),
-			$this->discordNotifier->parseurl( $this->config->get( 'DiscordNotificationWikiUrl' ) . $this->config->get( 'DiscordNotificationWikiUrlEnding' ) . $localFile->getTitle()->getFullText() ),
-			$localFile->getTitle()->getText(),
-			$localFile->getMimeType(),
-			$lang->formatSize( $localFile->getSize() ),
-			'',
-			strip_tags( $localFile->getDescription() )
-		);
-
-		$this->discordNotifier->notify( $message, $user, 'file_uploaded' );
-	}
-
-	/**
-	 * @inheritDoc
-	 */
-	public function onBlockIpComplete( $block, $user, $priorBlock ) {
-		if ( !$this->config->get( 'DiscordNotificationBlockedUser' ) ) {
-			return;
-		}
-
-		$reason = $block->getReasonComment()->text;
-
-		$message = $this->discordNotifier->getMessage( 'discordnotifications-block-user',
-			$this->discordNotifier->getDiscordUserText( $user ),
-			$this->discordNotifier->getDiscordUserText(
-				$block->getTargetUserIdentity() ?? UserIdentityValue::newAnonymous( $block->getTargetName() )
-			),
-			$reason == '' ? '' : $this->discordNotifier->getMessage( 'discordnotifications-block-user-reason' ) . " '" . $reason . "'.",
-			$block->getExpiry() === 'infinity' ? 'infinity' : '<t:' . wfTimestamp( TS_UNIX, $block->getExpiry() ) . ':F>',
-			'<' . $this->discordNotifier->parseurl( $this->config->get( 'DiscordNotificationWikiUrl' ) . $this->config->get( 'DiscordNotificationWikiUrlEnding' ) . $this->config->get( 'DiscordNotificationWikiUrlEndingBlockList' ) ) . '|' . $this->discordNotifier->getMessage( 'discordnotifications-block-user-list' ) . '>.'
-		);
-
-		$webhook = $this->config->get( 'DiscordEnableExperimentalCVTFeatures' ) &&
-			$this->config->get( 'DiscordExperimentalCVTSendAllUserBlocks' ) ?
-			$this->config->get( 'DiscordExperimentalWebhook' ) :
-			( $this->config->get( 'DiscordExperimentalUserBlocksWebhook' ) ?: null );
-
-		if ( $webhook ) {
-			$experimentalLanguageCode = $this->config->get( 'DiscordExperimentalFeedLanguageCode' );
-			if ( $experimentalLanguageCode ) {
-				$messageInLanguage = $this->discordNotifier->getMessageInLanguage( 'discordnotifications-block-user',
-					$experimentalLanguageCode,
-					$this->discordNotifier->getDiscordUserText( $user, $experimentalLanguageCode ),
-					$this->discordNotifier->getDiscordUserText(
-						$block->getTargetUserIdentity() ?? UserIdentityValue::newAnonymous( $block->getTargetName() ),
-						$experimentalLanguageCode, true
-					),
-					$reason == '' ? '' : $this->discordNotifier->getMessageInLanguage( 'discordnotifications-block-user-reason', $experimentalLanguageCode ) . " '" . $reason . "'.",
-					$block->getExpiry() === 'infinity' ? 'infinity' : '<t:' . wfTimestamp( TS_UNIX, $block->getExpiry() ) . ':F>',
-					'<' . $this->discordNotifier->parseurl( $this->config->get( 'DiscordNotificationWikiUrl' ) . $this->config->get( 'DiscordNotificationWikiUrlEnding' ) . $this->config->get( 'DiscordNotificationWikiUrlEndingBlockList' ) ) . '|' . $this->discordNotifier->getMessageInLanguage( 'discordnotifications-block-user-list', $experimentalLanguageCode ) . '>.'
-				);
-			}
-
-			$this->discordNotifier->notify( $messageInLanguage ?? $message, $user, 'user_blocked', [], $webhook );
-		}
-
-		$this->discordNotifier->notify( $message, $user, 'user_blocked' );
-	}
-
-	/**
-	 * @inheritDoc
-	 */
-	public function onUserGroupsChanged( $user, $added, $removed, $performer, $reason, $oldUGMs, $newUGMs ) {
-		if ( !$this->config->get( 'DiscordNotificationUserGroupsChanged' ) ) {
-			return;
-		}
-
-		if ( $user->getWikiId() !== WikiAwareEntity::LOCAL ) {
-			// TODO: Support external users
-			return;
-		}
-
-		$message = $this->discordNotifier->getMessage( 'discordnotifications-change-user-groups-with-old',
-			$this->discordNotifier->getDiscordUserText( $performer ),
-			$this->discordNotifier->getDiscordUserText( $user ),
-			implode( ', ', array_keys( $oldUGMs ) ),
-			implode( ', ', $this->userGroupManager->getUserGroups( $user ) ),
-			'<' . $this->discordNotifier->parseurl( $this->config->get( 'DiscordNotificationWikiUrl' ) . $this->config->get( 'DiscordNotificationWikiUrlEnding' ) . $this->config->get( 'DiscordNotificationWikiUrlEndingUserRights' ) . $this->discordNotifier->getDiscordUserText( $performer ) ) . '|' . $this->discordNotifier->getMessage( 'discordnotifications-view-user-rights' ) . '>.'
-		);
-
-		$this->discordNotifier->notify( $message, $user, 'user_groups_changed' );
 	}
 
 	/**
