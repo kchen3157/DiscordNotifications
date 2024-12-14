@@ -143,7 +143,7 @@ class Hooks implements
 
 			$message = $this->discordNotifier->getMessage( 'discordnotifications-proposition-created',
 				$this->discordNotifier->getDiscordUserText( $user ),
-				$this->discordNotifier->getDiscordArticleText( $wikiPage )
+				$this->discordNotifier->getDiscordPropositionText( $wikiPage )
 				// $summary == '' ? '' : $this->discordNotifier->getMessageWithPlaintextParams( 'discordnotifications-summary', $summary )
 			);
 

@@ -320,6 +320,25 @@ class DiscordNotifier {
 	}
 
 	/**
+	 * Gets nice HTML text for a proposition article containing the link to article page
+	 * and also into edit, delete and history pages.
+	 * 
+	 * * Copied from function getDiscordArticleText()
+	 *
+	 * @param WikiPage $wikiPage
+	 * @param bool $diff
+	 * @param string $languageCode
+	 * @return string
+	 */
+	public function getDiscordPropositionText( WikiPage $wikiPage, bool $diff = false, string $languageCode = '' ): string {
+		$title = $wikiPage->getTitle()->getText(); // Get only the title after Proposition:
+		$title_url = str_replace( '&', '%26', $title );
+		$prefix = '<' . $this->options->get( 'DiscordNotificationWikiUrl' ) . $this->options->get( 'DiscordNotificationWikiUrlEnding' ) . $title_url;
+
+		return $this->parseurl( $prefix ) . '|' . $title . '>';
+	}
+
+	/**
 	 * Gets nice HTML text for title object containing the link to article page
 	 * and also into edit, delete and article history pages.
 	 *
